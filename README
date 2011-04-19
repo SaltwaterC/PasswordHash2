@@ -14,8 +14,8 @@ The following statements imply certain system requirements:
 
 Since all the previous versions of PHP, including 5.2.0+, reached End Of Life
 status, you ought to upgrade your setup anyway, therefore the requirements
-aren't that restrictive. The avantage of this implementation is the fact that
-it consistently work accross platforms. There are no Windows-isms or *nix-isms
+aren't that restrictive. The advantage of this implementation is the fact that
+it consistently work across platforms. There are no Windows-isms or *nix-isms
 in this implementation. If fact, this is hack-free from the PHP implementation
 point of view.
 
