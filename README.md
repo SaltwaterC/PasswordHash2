@@ -27,19 +27,22 @@ point of view.
 
 The usage mode is straight forward.
 
-```PasswordHash2::hash('password');```
+PasswordHash2::hash('password');
 
 > returns a bcrypt hash, false on failure aka the hash is shorter than expected.
 > It should not fail unless you don't have the required PHP version and OpenSSL
 > extension. Raises a warning if the OpenSSL random seed is not considered to
 > be crypto strong. Unless your setup is really broken, this should not occur.
 
-```PasswordHash2::hash('password', 10);```
+PasswordHash2::hash('password', 10);
+
 > you may specify the cost parameter as well. The cost parameter defaults to 8.
 
-```PasswordHash2::check($hash, '$password');```
+PasswordHash2::check($hash, '$password');
+
 > returns bool. Basically this method is a crypt wrapper, added for convenience.
 
-```PasswordHash2::test();```
+PasswordHash2::test();
+
 > test method, added for convenience. Yells at you if you don't have the
 > system requirements.
