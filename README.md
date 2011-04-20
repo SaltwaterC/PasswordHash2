@@ -38,7 +38,7 @@ PasswordHash2::hash('password', 10);
 
 > you may specify the cost parameter as well. The cost parameter defaults to 8.
 
-PasswordHash2::check($hash, '$password');
+PasswordHash2::check($hash, $password);
 
 > returns bool. Basically this method is a crypt wrapper, added for convenience.
 
