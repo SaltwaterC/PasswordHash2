@@ -1,3 +1,5 @@
+## About
+
 Password Hashing class, inspired by phpass v0.3 http://www.openwall.com/phpass/
 
 Unlike the original phpass implementation, this class does not fallback when a
@@ -7,10 +9,12 @@ arcane methods for getting a bunch of random bytes. It uses
 openssl_random_pseudo_bytes() behind the scenes. You don't have to generate the
 salt by yourself. The hash method does all the heavy lifting.
 
-The following statements imply certain system requirements:
+The following statements imply certain system requirements.
 
-- PHP 5.3.0+
-- OpenSSL extension
+## System Requirements
+
+ * PHP 5.3.0+
+ * OpenSSL extension
 
 Since all the previous versions of PHP, including 5.2.0+, reached End Of Life
 status, you ought to upgrade your setup anyway, therefore the requirements
@@ -19,21 +23,23 @@ it consistently work across platforms. There are no Windows-isms or *nix-isms
 in this implementation. If fact, this is hack-free from the PHP implementation
 point of view.
 
-The usage mode is straight forward:
+## How to use
 
-PasswordHash2::hash('password');
-	=> returns a bcrypt hash, false on failure aka
-the hash is shorter than expected. It should not fail unless you don't have the
-required PHP version and OpenSSL extension. Raises a warning if the OpenSSL
-random seed is not considered to be crypto strong. Unless your setup is really
-broken, this should not occur.
+The usage mode is straight forward.
 
-PasswordHash2::hash('password', 10);
-	=> you may specify the cost parameter as well. The cost parameter defaults to 8.
+```PasswordHash2::hash('password');```
+> returns a bcrypt hash, false on failure aka
+> the hash is shorter than expected. It should not fail unless you don't have the
+> required PHP version and OpenSSL extension. Raises a warning if the OpenSSL
+> random seed is not considered to be crypto strong. Unless your setup is really
+> broken, this should not occur.
 
-PasswordHash2::check($hash, '$password');
-	=> bool. Basically this method is a crypt wrapper, added for convenience.
+```PasswordHash2::hash('password', 10);```
+> you may specify the cost parameter as well. The cost parameter defaults to 8.
 
-PasswordHash2::test();
-	=> test method, added for convenience. Yells at you if you don't have the
-system requirements.
+```PasswordHash2::check($hash, '$password');```
+> returns bool. Basically this method is a crypt wrapper, added for convenience.
+
+```PasswordHash2::test();```
+> test method, added for convenience. Yells at you if you don't have the
+> system requirements.
