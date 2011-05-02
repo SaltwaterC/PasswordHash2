@@ -68,11 +68,7 @@ class PasswordHash2 {
 					$salt = substr($salt, 0, 22);
 					$salt = str_replace('+', '.', $salt);
 					$cost = sprintf('%02d', $cost);
-					$salt = self::$map[$algo]['prefix'].$cost.'$'.$salt;
-				}
-				else
-				{
-					return FALSE;
+					return self::$map[$algo]['prefix'].$cost.'$'.$salt;
 				}
 			break;
 			
@@ -107,21 +103,13 @@ class PasswordHash2 {
 						}
 					}
 					
-					$salt = self::$map[$algo]['prefix'].'rounds='.$cost.'$'
+					return self::$map[$algo]['prefix'].'rounds='.$cost.'$'
 						.$seed.'$';
 				}
-				else
-				{
-					return FALSE;
-				}
-			break;
-			
-			default:
-				return FALSE;
 			break;
 		}
 		
-		return $salt;
+		return FALSE;
 	}
 	
 	/**
@@ -136,7 +124,7 @@ class PasswordHash2 {
 		$cost = (int) $cost;
 		$salt = self::salt($algo, $cost);
 		
-		if ($salt === FALSE)
+		if ( ! $salt)
 		{
 			return FALSE;
 		}
@@ -160,7 +148,7 @@ class PasswordHash2 {
 	 */
 	public static function check($password, $hash)
 	{
-		$hash = base64_decode($hash);
+		$hash = base64_decode($hash, TRUE);
 		return (crypt($password, $hash) == $hash);
 	}
 	
