@@ -15,18 +15,18 @@ class PasswordHash2 {
 	protected static $map = array(
 		
 		'bcrypt' => array(
-			'prefix' => '$2a$',
-			'length' => 60,
+			'prefix'  => '$2a$',
+			'length'  => 60,
 		),
 		
 		'sha256' => array(
-			'prefix' => '$5$',
-			'length' => 75,
+			'prefix'  => '$5$',
+			'olength' => 75,
 		),
 		
 		'sha512' => array(
-			'prefix' => '$6$',
-			'length' => 118,
+			'prefix'  => '$6$',
+			'olength' => 118,
 		),
 	);
 	
@@ -91,7 +91,21 @@ class PasswordHash2 {
 					}
 					
 					$length = strlen((string) $cost) - 4;
-					self::$map[$algo]['length'] += $length;
+					$length = self::$map[$algo]['olength'] + $length;
+					self::$map[$algo]['length'] = $length;
+					
+					for ($i = 0; $i < 16; $i++)
+					{
+						if (ord($seed{$i}) === 0 OR ord($seed{$i}) === 36)
+						{
+							$pos = mt_rand(0, 1);
+							$char = array(
+								mt_rand(1, 35),
+								mt_rand(37, 255),
+							);
+							$seed{$i} = $char[$pos];
+						}
+					}
 					
 					$salt = self::$map[$algo]['prefix'].'rounds='.$cost.'$'
 						.$seed.'$';
