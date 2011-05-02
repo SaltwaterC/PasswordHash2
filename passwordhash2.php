@@ -16,17 +16,17 @@ class PasswordHash2 {
 		
 		'bcrypt' => array(
 			'prefix' => '$2a$',
-			'length' => 80,
+			'length' => 60,
 		),
 		
 		'sha256' => array(
 			'prefix' => '$5$',
-			'length' => 100,
+			'length' => 75,
 		),
 		
 		'sha512' => array(
 			'prefix' => '$6$',
-			'length' => 160,
+			'length' => 118,
 		),
 	);
 	
@@ -80,6 +80,19 @@ class PasswordHash2 {
 			case 'sha512':
 				if (CRYPT_SHA256 === 1 AND CRYPT_SHA512 === 1)
 				{
+					if ($cost < 1000)
+					{
+						$cost = 1000;
+					}
+					
+					if ($cost > 999999999)
+					{
+						$cost = 999999999;
+					}
+					
+					$length = strlen((string) $cost) - 4;
+					self::$map[$algo]['length'] += $length;
+					
 					$salt = self::$map[$algo]['prefix'].'rounds='.$cost.'$'
 						.$seed.'$';
 				}
@@ -90,7 +103,7 @@ class PasswordHash2 {
 			break;
 			
 			default:
-				$salt = FALSE;
+				return FALSE;
 			break;
 		}
 		
@@ -114,11 +127,11 @@ class PasswordHash2 {
 			return FALSE;
 		}
 		
-		$hash = base64_encode(crypt($password, $salt));
+		$hash = crypt($password, $salt);
 		
 		if (strlen($hash) === self::$map[$algo]['length'])
 		{
-			return $hash;
+			return base64_encode($hash);
 		}
 		
 		return FALSE;
