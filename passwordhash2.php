@@ -103,7 +103,7 @@ class PasswordHash2 {
 								mt_rand(1, 35),
 								mt_rand(37, 255),
 							);
-							$seed{$i} = $char[$pos];
+							$seed{$i} = chr($char[$pos]);
 						}
 					}
 					
