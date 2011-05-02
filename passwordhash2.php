@@ -68,6 +68,7 @@ class PasswordHash2 {
 					$salt = substr($salt, 0, 22);
 					$salt = str_replace('+', '.', $salt);
 					$cost = sprintf('%02d', $cost);
+					
 					return self::$map[$algo]['prefix'].$cost.'$'.$salt;
 				}
 			break;
@@ -148,10 +149,12 @@ class PasswordHash2 {
 	public static function check($password, $hash)
 	{
 		$hash = base64_decode($hash, TRUE);
+		
 		if ( ! $hash)
 		{
 			return FALSE;
 		}
+		
 		return (crypt($password, $hash) === $hash);
 	}
 	
