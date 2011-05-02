@@ -64,8 +64,8 @@ PasswordHash2::check($hash, $password);
 
 > returns bool.
 
-PasswordHash2::test();
+php test.php
 
-> test method, added for convenience. Yells at you if you don't have
+> test script, added for convenience. Yells at you if you don't have
 > the system requirements.
 
