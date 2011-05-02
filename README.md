@@ -34,7 +34,7 @@ The usage mode is straight forward.
 
 PasswordHash2::hash('password');
 
-> returns a bcrypt hash, FALSE on failure aka the hash is shorter than
+> Returns a bcrypt hash, FALSE on failure aka the hash is shorter than
 > expected or the desired algo is unavailable. It should not fail
 > unless you don't have the required PHP version and the OpenSSL
 > extension. Raises a warning if the OpenSSL random seed is not
@@ -55,17 +55,17 @@ PasswordHash2::hash('password', 'bcrypt');
 
 PasswordHash2::hash('password', 'bcrypt', 8);
 
-> you may specify the cost parameter as well. The cost parameter
+> You may specify the cost parameter as well. The cost parameter
 > defaults to 8 for bcrypt. For bcrypt, the cost parameter is
 > truncated to the nearest limit of 4 and 31. The SHA2 method
 > truncates the value to nearest limit of 1000 and 999999999.
 
 PasswordHash2::check($hash, $password);
 
-> returns bool.
+> Returns bool.
 
 php test.php
 
-> test script, added for convenience. Yells at you if you don't have
+> Test script, added for convenience. Yells at you if you don't have
 > the system requirements.
 
