@@ -121,7 +121,6 @@ class PasswordHash2 {
 	 */
 	public static function hash($password, $algo = 'bcrypt', $cost = 8)
 	{
-		$cost = (int) $cost;
 		$salt = self::salt($algo, $cost);
 		
 		if ( ! $salt)
@@ -149,7 +148,11 @@ class PasswordHash2 {
 	public static function check($password, $hash)
 	{
 		$hash = base64_decode($hash, TRUE);
-		return (crypt($password, $hash) == $hash);
+		if ( ! $hash)
+		{
+			return FALSE;
+		}
+		return (crypt($password, $hash) === $hash);
 	}
 	
 } // End PasswordHash2
