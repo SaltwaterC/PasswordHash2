@@ -27,9 +27,9 @@ The previous statements imply certain system requirements.
  * PHP 5.3.0+ (bcrypt) or PHP 5.3.2+ (all methods)
  * OpenSSL extension
 
-This implementation is the fact that it consistently works across platforms.
-There are no Windows-isms or *nix-isms in this implementation. In fact, this is
-hack-free from the PHP implementation point of view.
+This implementation works consistently across platforms. There are no
+Windows-isms or *nix-isms in this implementation. In fact, this is hack-free
+from the PHP implementation point of view.
 
 ## How to use
 
@@ -74,14 +74,14 @@ PasswordHash2::rehash($password, $hash, $algo, $cost);
 > hashing. May replace check() while the returned value, if it's a string, not
 > FALSE, it may be saved to the database. However, this method for changing the
 > existing hashes with hashes that have higher cost values is not efficient, but
-> easy to implement.
+> easier to implement than wrapping your own logic.
 
 PasswordHash::cost($hash);
 
 > Returns the cost parameter for a given hash. May be used for implementing
 > resource efficient methods for adaptive hashing instead of using rehash()
 > which comes with added overhead. You have to wrap your own logic over the
-> PasswordHash2 API such as hash() a new password if the cost() value of a given
+> PasswordHash2 API such as: hash() a new password if the cost() value of a given
 > $hash is different than the defined default $cost. Unlike rehash(), it reduces
 > the number of hash() calls as well as the number of writes to the database.
 
