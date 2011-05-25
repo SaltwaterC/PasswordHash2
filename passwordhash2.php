@@ -8,30 +8,51 @@
  * 
  * @author Stefan Rusu
  * @license New BSD
- * @version 0.2
+ * @version 0.2.1
  */
 class PasswordHash2 {
-	
+	/**
+	 * Maps the lenght of the resulting hash. Since the SHA-2 based scheme has
+	 * a variable length, the length value is pushed to the map when the rounds
+	 * number is known.
+	 */
 	protected static $map = array(
 		
 		'bcrypt' => array(
-			'prefix'  => '$2a$',
-			'length'  => 60,
+			'prefix'     => '$2a$',
+			'length'     => 60,
 		),
 		
 		'sha256' => array(
-			'prefix'  => '$5$',
-			'olength' => 75,
+			'prefix'     => '$5$',
+			'min_length' => 75,
 		),
 		
 		'sha512' => array(
-			'prefix'  => '$6$',
-			'olength' => 118,
+			'prefix'     => '$6$',
+			'min_length' => 118,
 		),
 	);
 	
 	/**
-	 * Generates the $salt for $algo with $cost
+	 * Returns a 'good' random byte for use with the SHA-2 based scheme salt
+	 * that can use any byte, except NUL and $ - which is used as separator by
+	 * the crypt() schemes.
+	 * 
+	 * return string
+	 */
+	protected static function random_byte()
+	{
+		$pos = mt_rand(0, 1);
+		$char = array(
+			mt_rand(1, 35),
+			mt_rand(37, 255),
+		);
+		return ord($char[$pos]);
+	}
+	
+	/**
+	 * Generates the $salt for $algo with $cost.
 	 * 
 	 * @param string $algo
 	 * @param int $cost
@@ -88,19 +109,15 @@ class PasswordHash2 {
 					}
 					
 					$length = strlen((string) $cost) - 4;
-					$length = self::$map[$algo]['olength'] + $length;
+					$length = self::$map[$algo]['min_length'] + $length;
 					self::$map[$algo]['length'] = $length;
 					
 					for ($i = 0; $i < 16; $i++)
 					{
+						// Search for the 'bad' bytes that break the hashing
 						if (ord($seed{$i}) === 0 OR ord($seed{$i}) === 36)
 						{
-							$pos = mt_rand(0, 1);
-							$char = array(
-								mt_rand(1, 35),
-								mt_rand(37, 255),
-							);
-							$seed{$i} = chr($char[$pos]);
+							$seed{$i} = self::random_byte();
 						}
 					}
 					
@@ -114,7 +131,7 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Computes a bcrypt hash of $password using $algo with $cost value
+	 * Computes a bcrypt hash of $password using $algo with $cost value.
 	 * 
 	 * @param string $password
 	 * @param int $cost
@@ -156,6 +173,55 @@ class PasswordHash2 {
 		}
 		
 		return (crypt($password, $hash) === $hash);
+	}
+	
+	/**
+	 * Rehash method for easier implementation of adaptive hasing.
+	 * 
+	 * @param string $password
+	 * @param string $hash
+	 * @param string $algo
+	 * @param int $cost
+	 * @return mixed
+	 */
+	public static function rehash($password, $hash, $algo = 'bcrypt', $cost = 10)
+	{
+		if ( ! self::check($password, $hash))
+		{
+			return FALSE;
+		}
+		
+		return self::hash($password, $algo, $cost);
+	}
+	
+	/**
+	 * Returns the cost parameter of an input hash.
+	 * 
+	 * @param string $hash
+	 * @return mixed
+	 */
+	public static function cost($hash)
+	{
+		$hash = base64_decode($hash, TRUE);
+		
+		if ( ! $hash)
+		{
+			return FALSE;
+		}
+		
+		$match = preg_match(
+			'/^\$(?:2a|5|6)\$(?:rounds=)?(\d+)\$/', $hash, $matches
+		);
+		
+		if ($match === 1)
+		{
+			if (isset ($matches[1]))
+			{
+				return (int) $matches[1];
+			}
+		}
+		
+		return FALSE;
 	}
 	
 } // End PasswordHash2

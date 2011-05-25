@@ -64,9 +64,26 @@ PasswordHash2::hash('password', 'bcrypt', 8);
 > http://ua.php.net/manual/en/function.crypt.php provides you all the details
 > about the cost parameter.
 
-PasswordHash2::check($hash, $password);
+PasswordHash2::check($password, $hash);
 
 > Returns bool.
+
+PasswordHash2::rehash($password, $hash, $algo, $cost);
+
+> Wrapper for check() and hash() in order to ease the implementation of adaptive
+> hashing. May replace check() while the returned value, if it's a string, not
+> FALSE, it may be saved to the database. However, this method for changing the
+> existing hashes with hashes that have higher cost values is not efficient, but
+> easy to implement.
+
+PasswordHash::cost($hash);
+
+> Returns the cost parameter for a given hash. May be used for implementing
+> resource efficient methods for adaptive hashing instead of using rehash()
+> which comes with added overhead. You have to wrap your own logic over the
+> PasswordHash2 API such as hash() a new password if the cost() value of a given
+> $hash is different than the defined default $cost. Unlike rehash(), it reduces
+> the number of hash() calls as well as the number of writes to the database.
 
 php test.php
 

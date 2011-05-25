@@ -28,33 +28,49 @@ $password = uniqid(NULL, TRUE);
 $tests = array(
 	
 	array(
-		'cost' => 8,
-		'algo' => 'bcrypt',
+		'cost'     => 8,
+		'new_cost' => 10,
+		'algo'     => 'bcrypt',
 	),
 	
 	array(
-		'cost' => 5000,
-		'algo' => 'sha256',
+		'cost'     => 5000,
+		'new_cost' => 10000,
+		'algo'     => 'sha256',
 	),
 	
 	array(
-		'cost' => 5000,
-		'algo' => 'sha512',
+		'cost'     => 5000,
+		'new_cost' => 10000,
+		'algo'     => 'sha512',
 	),
 	
 );
 
-$line_terminator = (strtolower(PHP_SAPI) === 'cli') ? PHP_EOL : '<br>' ;
+$lt = (strtolower(PHP_SAPI) === 'cli') ? PHP_EOL : '<br>' ;
 
-echo $line_terminator;
+echo $lt;
 
 foreach ($tests as $params)
 {
 	$hash = PasswordHash2::hash($password, $params['algo'], $params['cost']);
 	$check = PasswordHash2::check($password, $hash);
+	$cost = PasswordHash2::cost($hash);
 	
-	echo 'Generated password: '.$password.'; Generated '.
-		$params['algo'].' hash: '.$hash.'; Is valid: '.
-		(($check) ? 'TRUE' : 'FALSE').$line_terminator.$line_terminator;
+	$rehash = PasswordHash2::rehash(
+		$password, $hash, $params['algo'], $params['new_cost']
+	);
+	$recheck = PasswordHash2::check($password, $rehash);
+	$recost = PasswordHash2::cost($rehash);
+	
+	echo 'Generated password: '.$password.$lt;
+	echo 'Generated '.$params['algo'].' hash: '.$hash.$lt;
+	echo 'Is valid: '.(($check) ? 'TRUE' : 'FALSE').$lt;
+	echo 'Cost: '.$cost.$lt;
+	echo 'Rehashed password: '.$rehash.$lt;
+	echo 'Is valid: '.(($recheck) ? 'TRUE' : 'FALSE').$lt;
+	echo 'Cost: '.$recost.$lt;
+	
+	echo $lt;
 }
 
