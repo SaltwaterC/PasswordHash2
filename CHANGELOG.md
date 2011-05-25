@@ -6,7 +6,7 @@
  using cost() is more efficient than straight rehash().
 
 ## v0.2
- * Implements Ulrich Drepper's SHA-2 based hashing scheme (SHA256 / SHA512)
+ * Implements Ulrich Drepper's SHA2 based hashing scheme (SHA256 / SHA512)
  besides bcrypt.
  * The v0.2 implementation isn't backward compatible due to the fact that the
  hash is stored as base64 encoded string. It also pushes the cost parameter to
