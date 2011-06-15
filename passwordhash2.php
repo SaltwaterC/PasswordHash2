@@ -184,7 +184,8 @@ class PasswordHash2 {
 	 * @param int $cost
 	 * @return mixed
 	 */
-	public static function rehash($password, $hash, $algo = 'bcrypt', $cost = 10)
+	public static function rehash($password, $hash, $algo = 'bcrypt',
+		$cost = 10)
 	{
 		if ( ! self::check($password, $hash))
 		{
