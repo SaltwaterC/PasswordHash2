@@ -40,171 +40,6 @@ class PasswordHash2 {
 	);
 	
 	/**
-	 * Returns a 'good' random byte for use with the SHA-2 based scheme salt
-	 * that can use any byte, except NUL and $ - which is used as separator by
-	 * the crypt() schemes.
-	 * 
-	 * @return string
-	 */
-	protected static function random_byte()
-	{
-		$pos = mt_rand(0, 1);
-		$char = array(
-			mt_rand(1, 35),
-			mt_rand(37, 255),
-		);
-		return ord($char[$pos]);
-	}
-	
-	/**
-	 * Generates the $salt for $algo with $cost.
-	 * 
-	 * @param string $algo
-	 * @param int $cost
-	 * 
-	 * @return mixed
-	 */
-	protected static function salt($algo, $cost)
-	{
-		$cost = (int) $cost;
-		$seed = openssl_random_pseudo_bytes(16, $crypto_strong);
-		
-		if ($crypto_strong !== TRUE)
-		{
-			trigger_error('The random bytes generator isn\'t "cryptographically'
-				.' strong". An update to the PHP stack and / or OpenSSL is '
-				.'advisable.', E_USER_WARNING);
-		}
-		
-		switch ($algo)
-		{
-			case self::bcrypt:
-				if (CRYPT_BLOWFISH === 1)
-				{
-					if ($cost < 4)
-					{
-						$cost = 4;
-					}
-					
-					if ($cost > 31)
-					{
-						$cost = 31;
-					}
-					
-					$salt = base64_encode($seed);
-					$salt = substr($salt, 0, 22);
-					$salt = str_replace('+', '.', $salt);
-					
-					return self::$map[$algo]['prefix']
-						.self::bcrypt_format_cost($cost).'$'.$salt;
-				}
-			break;
-			
-			case self::sha256:
-			case self::sha512:
-				if (CRYPT_SHA256 === 1 AND CRYPT_SHA512 === 1)
-				{
-					if ($cost < 1000)
-					{
-						$cost = 1000;
-					}
-					
-					if ($cost > 999999999)
-					{
-						$cost = 999999999;
-					}
-					
-					$length = strlen((string) $cost) - 4;
-					$length = self::$map[$algo]['min_length'] + $length;
-					self::$map[$algo]['length'] = $length;
-					
-					for ($i = 0; $i < 16; $i++)
-					{
-						// Search for the 'bad' bytes that break the hashing
-						if (ord($seed{$i}) === 0 OR ord($seed{$i}) === 36)
-						{
-							$seed{$i} = self::random_byte();
-						}
-					}
-					
-					return self::$map[$algo]['prefix'].'rounds='.$cost.'$'
-						.$seed.'$';
-				}
-			break;
-		}
-		
-		return FALSE;
-	}
-	
-	/**
-	 * Returns the zero padded cost parameter for bcrypt
-	 * 
-	 * @param int $cost
-	 * 
-	 * @return string
-	 */
-	protected static function bcrypt_format_cost($cost)
-	{
-		return sprintf('%02d', $cost);
-	}
-	
-	/**
-	 * Returns the cost parameter of a bcrypt short hash
-	 * 
-	 * @param string $hash
-	 * 
-	 * @return int
-	 */
-	protected static function bcrypt_short_cost($hash)
-	{
-		return (int) base_convert(substr($hash, -1), 32, 10);
-	}
-	
-	/**
-	 * Returns the cost parameter of a sha256 short hash
-	 * 
-	 * @param string $hash
-	 * 
-	 * @return int
-	 */
-	protected static function sha256_short_cost($hash)
-	{
-		return (int) base_convert(substr($hash, 65), 36, 10);
-	}
-	
-	/**
-	 * Returns the cost parameter of a sha512 short hash
-	 * 
-	 * @param string $hash
-	 * 
-	 * @return int
-	 */
-	protected static function sha512_short_cost($hash)
-	{
-		return (int) base_convert(substr($hash, 108), 36, 10);
-	}
-	
-	/**
-	 * Returns the salt of a SHA-2 hash
-	 * 
-	 * @param string $hash
-	 * 
-	 * @return mixed
-	 */
-	protected static function sha_short_salt($hash)
-	{
-		$salt = substr($hash, 0, 22);
-		$salt = base64_decode($salt, TRUE);
-		
-		if ( ! $salt)
-		{
-			return FALSE;
-		}
-		
-		return $salt;
-	}
-	
-	/**
 	 * Computes a bcrypt hash of $password using $algo with $cost value.
 	 * 
 	 * @param string $password
@@ -454,4 +289,169 @@ class PasswordHash2 {
 		return self::hash($password, self::sha512, $rounds, $short);
 	}
 	
+	/**
+	 * Returns a 'good' random byte for use with the SHA-2 based scheme salt
+	 * that can use any byte, except NUL and $ - which is used as separator by
+	 * the crypt() schemes.
+	 * 
+	 * @return string
+	 */
+	protected static function random_byte()
+	{
+		$pos = mt_rand(0, 1);
+		$char = array(
+			mt_rand(1, 35),
+			mt_rand(37, 255),
+		);
+		return ord($char[$pos]);
+	}
+	
+	/**
+	 * Generates the $salt for $algo with $cost.
+	 * 
+	 * @param string $algo
+	 * @param int $cost
+	 * 
+	 * @return mixed
+	 */
+	protected static function salt($algo, $cost)
+	{
+		$cost = (int) $cost;
+		$seed = openssl_random_pseudo_bytes(16, $crypto_strong);
+		
+		if ($crypto_strong !== TRUE)
+		{
+			trigger_error('The random bytes generator isn\'t "cryptographically'
+				.' strong". An update to the PHP stack and / or OpenSSL is '
+				.'advisable.', E_USER_WARNING);
+		}
+		
+		switch ($algo)
+		{
+			case self::bcrypt:
+				if (CRYPT_BLOWFISH === 1)
+				{
+					if ($cost < 4)
+					{
+						$cost = 4;
+					}
+					
+					if ($cost > 31)
+					{
+						$cost = 31;
+					}
+					
+					$salt = base64_encode($seed);
+					$salt = substr($salt, 0, 22);
+					$salt = str_replace('+', '.', $salt);
+					
+					return self::$map[$algo]['prefix']
+						.self::bcrypt_format_cost($cost).'$'.$salt;
+				}
+			break;
+			
+			case self::sha256:
+			case self::sha512:
+				if (CRYPT_SHA256 === 1 AND CRYPT_SHA512 === 1)
+				{
+					if ($cost < 1000)
+					{
+						$cost = 1000;
+					}
+					
+					if ($cost > 999999999)
+					{
+						$cost = 999999999;
+					}
+					
+					$length = strlen((string) $cost) - 4;
+					$length = self::$map[$algo]['min_length'] + $length;
+					self::$map[$algo]['length'] = $length;
+					
+					for ($i = 0; $i < 16; $i++)
+					{
+						// Search for the 'bad' bytes that break the hashing
+						if (ord($seed{$i}) === 0 OR ord($seed{$i}) === 36)
+						{
+							$seed{$i} = self::random_byte();
+						}
+					}
+					
+					return self::$map[$algo]['prefix'].'rounds='.$cost.'$'
+						.$seed.'$';
+				}
+			break;
+		}
+		
+		return FALSE;
+	}
+	
+	/**
+	 * Returns the zero padded cost parameter for bcrypt
+	 * 
+	 * @param int $cost
+	 * 
+	 * @return string
+	 */
+	protected static function bcrypt_format_cost($cost)
+	{
+		return sprintf('%02d', $cost);
+	}
+	
+	/**
+	 * Returns the cost parameter of a bcrypt short hash
+	 * 
+	 * @param string $hash
+	 * 
+	 * @return int
+	 */
+	protected static function bcrypt_short_cost($hash)
+	{
+		return (int) base_convert(substr($hash, -1), 32, 10);
+	}
+	
+	/**
+	 * Returns the cost parameter of a sha256 short hash
+	 * 
+	 * @param string $hash
+	 * 
+	 * @return int
+	 */
+	protected static function sha256_short_cost($hash)
+	{
+		return (int) base_convert(substr($hash, 65), 36, 10);
+	}
+	
+	/**
+	 * Returns the cost parameter of a sha512 short hash
+	 * 
+	 * @param string $hash
+	 * 
+	 * @return int
+	 */
+	protected static function sha512_short_cost($hash)
+	{
+		return (int) base_convert(substr($hash, 108), 36, 10);
+	}
+	
+	/**
+	 * Returns the salt of a SHA-2 hash
+	 * 
+	 * @param string $hash
+	 * 
+	 * @return mixed
+	 */
+	protected static function sha_short_salt($hash)
+	{
+		$salt = substr($hash, 0, 22);
+		$salt = base64_decode($salt, TRUE);
+		
+		if ( ! $salt)
+		{
+			return FALSE;
+		}
+		
+		return $salt;
+	}
+		
 } // End PasswordHash2
