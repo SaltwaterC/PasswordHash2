@@ -30,19 +30,19 @@ $tests = array(
 	array(
 		'cost'     => 8,
 		'new_cost' => 10,
-		'algo'     => 'bcrypt',
+		'algo'     => PasswordHash2::bcrypt,
 	),
 	
 	array(
 		'cost'     => 5000,
 		'new_cost' => 10000,
-		'algo'     => 'sha256',
+		'algo'     => PasswordHash2::sha256,
 	),
 	
 	array(
 		'cost'     => 5000,
 		'new_cost' => 10000,
-		'algo'     => 'sha512',
+		'algo'     => PasswordHash2::sha512,
 	),
 	
 );
@@ -63,6 +63,14 @@ foreach ($tests as $params)
 	$recheck = PasswordHash2::check($password, $rehash);
 	$recost = PasswordHash2::cost($rehash);
 	
+	$shorthash = PasswordHash2::hash(
+		$password, $params['algo'], $params['cost'],TRUE
+	);
+	$shortcheck = PasswordHash2::check(
+		$password, $shorthash, $params['algo'], TRUE
+	);
+	$shortcost = PasswordHash2::cost($shorthash, $params['algo'], TRUE);
+	
 	echo 'Generated password: '.$password.$lt;
 	echo 'Generated '.$params['algo'].' hash: '.$hash.$lt;
 	echo 'Is valid: '.(($check) ? 'TRUE' : 'FALSE').$lt;
@@ -70,6 +78,9 @@ foreach ($tests as $params)
 	echo 'Rehashed password: '.$rehash.$lt;
 	echo 'Is valid: '.(($recheck) ? 'TRUE' : 'FALSE').$lt;
 	echo 'Cost: '.$recost.$lt;
+	echo 'Short '.$params['algo'].' hash: '.$shorthash.$lt;
+	echo 'Is valid: '.(($shortcheck) ? 'TRUE' : 'FALSE').$lt;
+	echo 'Short Cost: '.$shortcost.$lt;
 	
 	echo $lt;
 }
