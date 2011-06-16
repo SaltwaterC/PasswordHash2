@@ -19,7 +19,8 @@ class PasswordHash2 {
 	/**
 	 * Maps the lenght of the resulting hash. Since the SHA-2 based scheme has
 	 * a variable length, the length value is pushed to the map when the rounds
-	 * number is known.
+	 * number is known. It also maps the algorithm prefixes for the crypt()
+	 * scheme.
 	 */
 	protected static $map = array(
 		
@@ -39,8 +40,11 @@ class PasswordHash2 {
 		),
 	);
 	
+	// The Public API
+	
 	/**
-	 * Computes a bcrypt hash of $password using $algo with $cost value.
+	 * Computes a bcrypt hash of $password using $algo with $cost value. Has
+	 * the $short flag for returning a compact version of the hash.
 	 * 
 	 * @param string $password
 	 * @param string $algo
@@ -69,7 +73,7 @@ class PasswordHash2 {
 			}
 			else
 			{
-				return self::shorten($hash, $algo);
+				return self::shorten($hash);
 			}
 		}
 		
@@ -77,33 +81,48 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Returns a shorter version of the raw $hash for $algo type. Incompatible
-	 * with the standard crypt() scheme.
+	 * Returns a shorter version of the $hash for $algo type. Incompatible
+	 * with the standard crypt() scheme. The enabled $raw flag means that the
+	 * hash is the returned value of crypt().
 	 * 
 	 * @param string $hash
-	 * @param string $algo
+	 * @param bool $raw
 	 * 
 	 * @return mixed
 	 */
-	static function shorten($hash, $algo)
+	static function shorten($hash, $raw = TRUE)
 	{
+		if ( ! $raw)
+		{
+			$hash = base64_decode($hash, TRUE);
+			
+			if ( ! $hash)
+			{
+				return FALSE;
+			}
+		}
+		
+		$algo = substr($hash, 1, 1);
+		
 		switch ($algo)
 		{
-			case 'bcrypt':
+			case '2': // bcrypt
 				$hash = explode('$', $hash);
-				$hash[2] = base_convert($hash[2], 10, 32);
+				$hash[2] = self::base36_encode($hash[2]); // the cost
 				
-				return $hash[3].$hash[2];
+				// algo + (salt + hash) + cost
+				return $algo.$hash[3].$hash[2];
 			break;
 			
-			case 'sha512':
-			case 'sha256':
-				$hash = substr($hash, 10);
+			case '5': // sha256
+			case '6': // sha512
+				$hash = substr($hash, 10); // the header just stays in the way
 				$hash = explode('$', $hash);
-				$hash[0] = base_convert($hash[0], 10, 36);
-				$hash[1] = substr(base64_encode($hash[1]), 0, 22);
+				$hash[0] = self::base36_encode($hash[0]); // cost
+				$hash[1] = substr(base64_encode($hash[1]), 0, 22); // salt
 				
-				return $hash[1].$hash[2].$hash[0];
+				// algo + salt + hash + cost
+				return $algo.$hash[1].$hash[2].$hash[0];
 			break;
 		}
 		
@@ -111,17 +130,15 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Checks a hash.
+	 * Checks a $password against a $hash. Has the $short flag capability.
 	 * 
 	 * @param string $password
 	 * @param string $hash
-	 * @param string $algo
 	 * @param bool $short
 	 * 
 	 * @return bool
 	 */
-	static function check($password, $hash, $algo = self::bcrypt,
-			$short = FALSE)
+	static function check($password, $hash, $short = FALSE)
 	{
 		if ( ! $short)
 		{
@@ -134,40 +151,42 @@ class PasswordHash2 {
 		}
 		else
 		{
-			$hash = self::expand($hash, $algo);
+			$hash = self::expand($hash);
 		}
 		
 		return (crypt($password, $hash) === $hash);
 	}
 	
 	/**
-	 * Expands a $hash to the appropriate crypt() scheme representation for
-	 * $algo.
+	 * Expands a $shorhash to the appropriate crypt() scheme representation.
 	 * 
-	 * @param string $hash
-	 * @param string $algo
+	 * @param string $shorthash
 	 * 
 	 * @return mixed
 	 */
-	static function expand($hash, $algo)
+	static function expand($shorthash)
 	{
+		$algo = substr($shorthash, 0, 1);
+		
 		switch ($algo)
 		{
-			case self::bcrypt:
-				$cost = self::bcrypt_short_cost($hash);
+			case '2': // bcrypt
+				$cost = self::bcrypt_short_cost($shorthash);
 				$cost = self::bcrypt_format_cost($cost);
 				
-				return '$2a$'.$cost.'$'.substr($hash, 0, 53);
+				return '$2a$'.$cost.'$'.substr($shorthash, 1, 53);
 			break;
 			
-			case self::sha256:
-				return '$5$rounds='.self::sha256_short_cost($hash).'$'
-					.self::sha_short_salt($hash).'$'.substr($hash, 22, 43);
+			case '5': // sha256
+				return '$5$rounds='.self::sha256_short_cost($shorthash).'$'
+					.self::sha_short_salt($shorthash).'$'
+					.substr($shorthash, 23, 43);
 			break;
 			
-			case self::sha512:
-				return '$6$rounds='.self::sha512_short_cost($hash).'$'
-					.self::sha_short_salt($hash).'$'.substr($hash, 22, 86);
+			case '6': // sha512
+				return '$6$rounds='.self::sha512_short_cost($shorthash).'$'
+					.self::sha_short_salt($shorthash).'$'
+					.substr($shorthash, 23, 86);
 			break;
 		}
 		
@@ -197,13 +216,15 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Returns the cost parameter of an input hash.
+	 * Returns the $cost parameter of an input $hash. Has the $short flag
+	 * capability.
 	 * 
 	 * @param string $hash
+	 * @param bool $short
 	 * 
 	 * @return mixed
 	 */
-	static function cost($hash, $algo = self::bcrypt, $short = FALSE)
+	static function cost($hash, $short = FALSE)
 	{
 		if ( ! $short)
 		{
@@ -228,17 +249,19 @@ class PasswordHash2 {
 		}
 		else
 		{
+			$algo = substr($hash, 0, 1);
+			
 			switch ($algo)
 			{
-				case self::bcrypt:
+				case '2':
 					return self::bcrypt_short_cost($hash);
 				break;
 				
-				case self::sha256:
+				case '5':
 					return self::sha256_short_cost($hash);
 				break;
 				
-				case self::sha512:
+				case '6':
 					return self::sha512_short_cost($hash);
 				break;
 			}
@@ -248,7 +271,7 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Alias for hash + bcrypt
+	 * Alias for hash + bcrypt.
 	 * 
 	 * @param string $password
 	 * @param int $cost
@@ -262,7 +285,7 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Alias for hash + sha256
+	 * Alias for hash + sha256.
 	 * 
 	 * @param string $password
 	 * @param int $rounds
@@ -276,7 +299,7 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Alias for hash + sha512
+	 * Alias for hash + sha512.
 	 * 
 	 * @param string $password
 	 * @param int $rounds
@@ -288,6 +311,8 @@ class PasswordHash2 {
 	{
 		return self::hash($password, self::sha512, $rounds, $short);
 	}
+	
+	// The Private API
 	
 	/**
 	 * Returns a 'good' random byte for use with the SHA-2 based scheme salt
@@ -387,7 +412,7 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Returns the zero padded cost parameter for bcrypt
+	 * Returns the zero padded cost parameter for bcrypt.
 	 * 
 	 * @param int $cost
 	 * 
@@ -399,7 +424,7 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Returns the cost parameter of a bcrypt short hash
+	 * Returns the cost parameter of a bcrypt short hash.
 	 * 
 	 * @param string $hash
 	 * 
@@ -407,11 +432,11 @@ class PasswordHash2 {
 	 */
 	protected static function bcrypt_short_cost($hash)
 	{
-		return (int) base_convert(substr($hash, -1), 32, 10);
+		return (int) self::base36_decode(substr($hash, -1));
 	}
 	
 	/**
-	 * Returns the cost parameter of a sha256 short hash
+	 * Returns the cost parameter of a sha256 short hash.
 	 * 
 	 * @param string $hash
 	 * 
@@ -419,11 +444,11 @@ class PasswordHash2 {
 	 */
 	protected static function sha256_short_cost($hash)
 	{
-		return (int) base_convert(substr($hash, 65), 36, 10);
+		return (int) self::base36_decode(substr($hash, 66));
 	}
 	
 	/**
-	 * Returns the cost parameter of a sha512 short hash
+	 * Returns the cost parameter of a sha512 short hash.
 	 * 
 	 * @param string $hash
 	 * 
@@ -431,11 +456,11 @@ class PasswordHash2 {
 	 */
 	protected static function sha512_short_cost($hash)
 	{
-		return (int) base_convert(substr($hash, 108), 36, 10);
+		return (int) self::base36_decode(substr($hash, 109));
 	}
 	
 	/**
-	 * Returns the salt of a SHA-2 hash
+	 * Returns the salt of a SHA-2 short hash.
 	 * 
 	 * @param string $hash
 	 * 
@@ -443,7 +468,7 @@ class PasswordHash2 {
 	 */
 	protected static function sha_short_salt($hash)
 	{
-		$salt = substr($hash, 0, 22);
+		$salt = substr($hash, 1, 22);
 		$salt = base64_decode($salt, TRUE);
 		
 		if ( ! $salt)
@@ -452,6 +477,30 @@ class PasswordHash2 {
 		}
 		
 		return $salt;
+	}
+	
+	/**
+	 * base10 to base36 converter.
+	 * 
+	 * @param int $number
+	 * 
+	 * @return string
+	 */
+	protected static function base36_encode($number)
+	{
+		return base_convert($number, 10, 36);
+	}
+	
+	/**
+	 * base36 to base10 converter.
+	 * 
+	 * @param string $number
+	 * 
+	 * @return int
+	 */
+	protected static function base36_decode($number)
+	{
+		return base_convert($number, 36, 10);
 	}
 		
 } // End PasswordHash2

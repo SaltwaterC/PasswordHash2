@@ -67,9 +67,9 @@ foreach ($tests as $params)
 		$password, $params['algo'], $params['cost'],TRUE
 	);
 	$shortcheck = PasswordHash2::check(
-		$password, $shorthash, $params['algo'], TRUE
+		$password, $shorthash, TRUE
 	);
-	$shortcost = PasswordHash2::cost($shorthash, $params['algo'], TRUE);
+	$shortcost = PasswordHash2::cost($shorthash, TRUE);
 	
 	echo 'Generated password: '.$password.$lt;
 	echo 'Generated '.$params['algo'].' hash: '.$hash.$lt;
