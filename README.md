@@ -22,6 +22,10 @@ The previous statements imply certain system requirements.
 
 This implementation works consistently across platforms. There are no Windows-isms or *nix-isms in this implementation. In fact, this is hack-free from the PHP implementation point of view.
 
+## Advisories
+
+ * [CVE-2011-2483: crypt_blowfish 8-bit character mishandling](http://www.openwall.com/lists/oss-security/2011/06/20/2) - affects the PHP's bcrypt implementation up to the current version (5.3.6). Till a patch is implemented, the SHA2 schemes are recommended.
+
 ## Class Reference
 
 ### Constants
@@ -77,6 +81,38 @@ PasswordHash2::sha256($password, $rounds = 5000, $short = FALSE)
 PasswordHash2::sha512($password, $rounds = 5000, $short = FALSE)
 
 > Alias for PasswordHash2::hash($password, PasswordHash::sha512, [...]);
+
+## Space requirements
+
+The bcrypt hashes have a fixed size:
+
+ * 80 chars - the base64 encoded representation
+ * 60 chars - the crypt scheme representation
+ * 55 chars - my shortened representation
+
+The SHA2 hashes have a variable length due to various rounds value.
+
+The ranges for sha256 are:
+
+ * 100 - 108 - the base64 encoded representation
+ * 75 - 80 - the crypt scheme representation
+ * 68 - 72 - my shortened representation
+
+The ranges for sha512 are:
+
+ * 160 - 164 - the base64 encoded representation
+ * 118 - 123 - the crypt scheme representation
+ * 111 - 115 - my shortened representation
+
+My shortened representation uses base36 for encoding the cost / rounds parameter for each hash. For bcrypt, a single char is enough to encode the whole range for the cost parameter (04 - 31).
+
+For the SHA2 schemes, the space requirements for storing the rounds in my shortened representation are the following for the ranges:
+
+ * from 1000 to 1295 - uses 2 chars
+ * from 1296 to 46655 - uses 3 chars
+ * from 46656 to 1679615 - uses 4 chars
+ * from 1679616 to 60466175 - uses 5 chars
+ * from 60466176 to 999999999 - uses 6 chars
 
 ## Misc
 

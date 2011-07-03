@@ -8,7 +8,7 @@
  * 
  * @author Stefan Rusu
  * @license New BSD
- * @version 0.2.2
+ * @version 0.2.3
  */
 class PasswordHash2 {
 	
