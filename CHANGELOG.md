@@ -1,3 +1,7 @@
+## v0.2.3
+ * adds an algo() method for determining the algo from the input hash.
+ * better docs.
+
 ## v0.2.2
  * adds support for short hashes. These hashes are the shortest possible textual representation of the resulted hashes, but the form is incompatible with the crypt() scheme. However, the possibility to expand them to the crypt() scheme is implemented.
  * adds some aliases of the hash() method in order to ease the integration with IDEs while it avoids typo errors.
