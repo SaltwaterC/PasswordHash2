@@ -56,12 +56,14 @@ foreach ($tests as $params)
 	$hash = PasswordHash2::hash($password, $params['algo'], $params['cost']);
 	$check = PasswordHash2::check($password, $hash);
 	$cost = PasswordHash2::cost($hash);
+	$algo = PasswordHash2::algo($hash, FALSE);
 	
 	$rehash = PasswordHash2::rehash(
 		$password, $hash, $params['algo'], $params['new_cost']
 	);
 	$recheck = PasswordHash2::check($password, $rehash);
 	$recost = PasswordHash2::cost($rehash);
+	$realgo = PasswordHash2::algo($rehash, FALSE);
 	
 	$shorthash = PasswordHash2::hash(
 		$password, $params['algo'], $params['cost'],TRUE
@@ -70,17 +72,23 @@ foreach ($tests as $params)
 		$password, $shorthash, TRUE
 	);
 	$shortcost = PasswordHash2::cost($shorthash, TRUE);
+	$shortalgo = PasswordHash2::algo($shorthash);
 	
 	echo 'Generated password: '.$password.$lt;
 	echo 'Generated '.$params['algo'].' hash: '.$hash.$lt;
 	echo 'Is valid: '.(($check) ? 'TRUE' : 'FALSE').$lt;
 	echo 'Cost: '.$cost.$lt;
+	echo 'Detected algo: '.$algo.$lt;
+	
 	echo 'Rehashed password: '.$rehash.$lt;
 	echo 'Is valid: '.(($recheck) ? 'TRUE' : 'FALSE').$lt;
 	echo 'Cost: '.$recost.$lt;
+	echo 'Detected algo: '.$realgo.$lt;
+	
 	echo 'Short '.$params['algo'].' hash: '.$shorthash.$lt;
 	echo 'Is valid: '.(($shortcheck) ? 'TRUE' : 'FALSE').$lt;
 	echo 'Short Cost: '.$shortcost.$lt;
+	echo 'Detected algo: '.$shortalgo.$lt;
 	
 	echo $lt;
 }

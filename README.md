@@ -62,6 +62,10 @@ PasswordHash2::cost($hash, $short = FALSE)
 
 > Returns the cost / rounds value of an input hash. Makes possible to implement efficient rehashing strategies at the cost of more added logic into the application.
 
+PasswordHash2::algo($hash, $raw = TRUE)
+
+> Returns the algo for the input hash. Make sure to disable the $raw flag if the input is base64 encoded. Retuns FALSE on failure.
+
 PasswordHash2::bcrypt($password, $cost = 8, $short = FALSE)
 
 > Alias for PasswordHash2::hash($password, PasswordHash::bcrypt, [...]);

@@ -271,6 +271,47 @@ class PasswordHash2 {
 	}
 	
 	/**
+	 * Returns the algo of a given hash
+	 * 
+	 * @param string $hash
+	 * @param bool $raw
+	 * 
+	 * @return mixed
+	 */
+	static function algo($hash, $raw = TRUE)
+	{
+		if ( ! $raw)
+		{
+			$hash = base64_decode($hash, TRUE);
+			if ( ! $hash)
+			{
+				return FALSE;
+			}
+		}
+		
+		for ($i = 0; $i <= 1; $i++)
+		{
+			$algo = substr($hash, $i, 1);
+			switch ($algo)
+			{
+				case '2':
+					return self::bcrypt;
+				break;
+				
+				case '5':
+					return self::sha256;
+				break;
+				
+				case '6':
+					return self::sha512;
+				break;
+			}
+		}
+		
+		return FALSE;
+	}
+	
+	/**
 	 * Alias for hash + bcrypt.
 	 * 
 	 * @param string $password
