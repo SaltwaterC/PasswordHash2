@@ -271,7 +271,7 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * Returns the algo of a given hash
+	 * Returns the algo of a given hash.
 	 * 
 	 * @param string $hash
 	 * @param bool $raw
