@@ -1,14 +1,20 @@
 <?php
 /**
- * Password Hashing class for PHP. Uses bcrypt (PHP 5.3.0+) or Ulrich Drepper's
- * SHA2 implementation (PHP 5.3.2+).
+ * Portable password hashing framework for PHP.
+ * 
+ * Implements:
+ * 
+ * - the CRYPT_BLOWFISH (bcrypt) scheme
+ * - my variation of CRYPT_SHA256 and CRYPT_SHA512 that borrows some concepts
+ *   from bcrypt to the SHA2 schemes
  * 
  * @link http://en.wikipedia.org/wiki/Crypt_%28Unix%29#Blowfish-based_scheme
  * @link http://en.wikipedia.org/wiki/Crypt_%28Unix%29#SHA-based_scheme
+ * @link https://github.com/SaltwaterC/PasswordHash2/wiki/Proposed-SHA2-crypt%28%29-schemes
  * 
  * @author Stefan Rusu
  * @license New BSD
- * @version 0.2.3
+ * @version 0.3-dev
  */
 class PasswordHash2 {
 	
@@ -30,12 +36,12 @@ class PasswordHash2 {
 		),
 		
 		self::sha256 => array(
-			'prefix'     => '$5$',
+			'prefix'     => '$5a$',
 			'min_length' => 75,
 		),
 		
 		self::sha512 => array(
-			'prefix'     => '$6$',
+			'prefix'     => '$6a$',
 			'min_length' => 118,
 		),
 	);
@@ -53,23 +59,33 @@ class PasswordHash2 {
 	 * 
 	 * @return mixed
 	 */
-	static function hash($password, $algo = self::bcrypt, $cost = 8,
-			$short = FALSE)
+	static function hash($password, $algo = self::bcrypt, $cost = 8, $short = FALSE)
 	{
 		$salt = self::salt($algo, $cost);
 		
 		if ( ! $salt)
 		{
-			return FALSE;
+			return FALSE; // TODO implement error codes, exceptions
 		}
 		
-		$hash = crypt($password, $salt);
+		switch ($algo)
+		{
+			case self::bcrypt:
+				$hash = crypt($password, $salt);
+			break;
+			
+			case self::sha256:
+			case self::sha512:
+				// TODO
+				$hash = '';
+			break;
+		}
 		
 		if (strlen($hash) === self::$map[$algo]['length'])
 		{
 			if ( ! $short)
 			{
-				return base64_encode($hash);
+				return $hash;
 			}
 			else
 			{
@@ -77,31 +93,20 @@ class PasswordHash2 {
 			}
 		}
 		
-		return FALSE;
+		return FALSE; // TODO implement error codes, exceptions
 	}
 	
 	/**
 	 * Returns a shorter version of the $hash for $algo type. Incompatible
-	 * with the standard crypt() scheme. The enabled $raw flag means that the
-	 * hash is the returned value of crypt().
+	 * with the standard crypt() scheme.
 	 * 
 	 * @param string $hash
-	 * @param bool $raw
 	 * 
 	 * @return mixed
 	 */
-	static function shorten($hash, $raw = TRUE)
+	static function shorten($hash)
 	{
-		if ( ! $raw)
-		{
-			$hash = base64_decode($hash, TRUE);
-			
-			if ( ! $hash)
-			{
-				return FALSE;
-			}
-		}
-		
+		// TODO refactor, the same method may be used for all hashes
 		$algo = substr($hash, 1, 1);
 		
 		switch ($algo)
@@ -126,7 +131,7 @@ class PasswordHash2 {
 			break;
 		}
 		
-		return FALSE;
+		return FALSE; // TODO implement error codes, exceptions
 	}
 	
 	/**
@@ -140,21 +145,26 @@ class PasswordHash2 {
 	 */
 	static function check($password, $hash, $short = FALSE)
 	{
-		if ( ! $short)
-		{
-			$hash = base64_decode($hash, TRUE);
-			
-			if ( ! $hash)
-			{
-				return FALSE;
-			}
-		}
-		else
+		if ($short)
 		{
 			$hash = self::expand($hash);
 		}
 		
-		return (crypt($password, $hash) === $hash);
+		$algo = self::algo($hash);
+		
+		switch ($algo)
+		{
+			case self::bcrypt:
+				return (crypt($password, $hash) === $hash);
+			break;
+			
+			case self::sha256:
+			case self::sha512:
+				// TODO
+			break;
+		}
+		
+		// TODO fail with code, exception
 	}
 	
 	/**
@@ -166,6 +176,7 @@ class PasswordHash2 {
 	 */
 	static function expand($shorthash)
 	{
+		// TODO refactor, the same expand method may be used by all hashes
 		$algo = substr($shorthash, 0, 1);
 		
 		switch ($algo)
@@ -190,7 +201,7 @@ class PasswordHash2 {
 			break;
 		}
 		
-		return FALSE;
+		return FALSE; // TODO: fail with code, exception
 	}
 	
 	/**
@@ -204,12 +215,11 @@ class PasswordHash2 {
 	 * 
 	 * @return mixed
 	 */
-	static function rehash($password, $hash, $algo = self::bcrypt,
-			$cost = 10, $short = FALSE)
+	static function rehash($password, $hash, $algo = self::bcrypt, $cost = 10, $short = FALSE)
 	{
 		if ( ! self::check($password, $hash))
 		{
-			return FALSE;
+			return FALSE; // TODO: fail with code, exception
 		}
 		
 		return self::hash($password, $algo, $cost, $short);
@@ -226,6 +236,7 @@ class PasswordHash2 {
 	 */
 	static function cost($hash, $short = FALSE)
 	{
+		// TODO refactor, the new proposed algos have the cost as the first section of the salt
 		if ( ! $short)
 		{
 			$hash = base64_decode($hash, TRUE);
@@ -267,28 +278,18 @@ class PasswordHash2 {
 			}
 		}
 		
-		return FALSE;
+		return FALSE; // TODO exit with code, exception
 	}
 	
 	/**
 	 * Returns the algo of a given hash.
 	 * 
 	 * @param string $hash
-	 * @param bool $raw
 	 * 
 	 * @return mixed
 	 */
-	static function algo($hash, $raw = TRUE)
+	static function algo($hash)
 	{
-		if ( ! $raw)
-		{
-			$hash = base64_decode($hash, TRUE);
-			if ( ! $hash)
-			{
-				return FALSE;
-			}
-		}
-		
 		for ($i = 0; $i <= 1; $i++)
 		{
 			$algo = substr($hash, $i, 1);
@@ -308,7 +309,7 @@ class PasswordHash2 {
 			}
 		}
 		
-		return FALSE;
+		return FALSE; // TODO exit with code, exception
 	}
 	
 	/**
@@ -356,23 +357,6 @@ class PasswordHash2 {
 	// The Private API
 	
 	/**
-	 * Returns a 'good' random byte for use with the SHA-2 based scheme salt
-	 * that can use any byte, except NUL and $ - which is used as separator by
-	 * the crypt() schemes.
-	 * 
-	 * @return string
-	 */
-	protected static function random_byte()
-	{
-		$pos = mt_rand(0, 1);
-		$char = array(
-			mt_rand(1, 35),
-			mt_rand(37, 255),
-		);
-		return ord($char[$pos]);
-	}
-	
-	/**
 	 * Generates the $salt for $algo with $cost.
 	 * 
 	 * @param string $algo
@@ -382,6 +366,7 @@ class PasswordHash2 {
 	 */
 	protected static function salt($algo, $cost)
 	{
+		// TODO refactor this junk, may use a much simpler salt generator
 		$cost = (int) $cost;
 		$seed = openssl_random_pseudo_bytes(16, $crypto_strong);
 		
@@ -449,7 +434,7 @@ class PasswordHash2 {
 			break;
 		}
 		
-		return FALSE;
+		return FALSE; // TODO of course, exit with code, exception
 	}
 	
 	/**
@@ -473,7 +458,7 @@ class PasswordHash2 {
 	 */
 	protected static function bcrypt_short_cost($hash)
 	{
-		return (int) self::base36_decode(substr($hash, -1));
+		return (int) self::base36_decode(substr($hash, -1)); // TODO replaced with unified method
 	}
 	
 	/**
@@ -485,7 +470,7 @@ class PasswordHash2 {
 	 */
 	protected static function sha256_short_cost($hash)
 	{
-		return (int) self::base36_decode(substr($hash, 66));
+		return (int) self::base36_decode(substr($hash, 66)); // TODO replaced with unified method
 	}
 	
 	/**
@@ -497,7 +482,7 @@ class PasswordHash2 {
 	 */
 	protected static function sha512_short_cost($hash)
 	{
-		return (int) self::base36_decode(substr($hash, 109));
+		return (int) self::base36_decode(substr($hash, 109)); // TODO replaced with unified method
 	}
 	
 	/**
@@ -509,6 +494,7 @@ class PasswordHash2 {
 	 */
 	protected static function sha_short_salt($hash)
 	{
+		// TODO most probably this may be removed
 		$salt = substr($hash, 1, 22);
 		$salt = base64_decode($salt, TRUE);
 		
@@ -521,7 +507,7 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * base10 to base36 converter.
+	 * base10 to base36 numeric converter.
 	 * 
 	 * @param int $number
 	 * 
@@ -533,7 +519,7 @@ class PasswordHash2 {
 	}
 	
 	/**
-	 * base36 to base10 converter.
+	 * base36 to base10 numeric converter.
 	 * 
 	 * @param string $number
 	 * 
