@@ -17,7 +17,7 @@ For more details over the implemented crypt() schemes, follow these links:
  * PHP 5.3.0+
  * OpenSSL extension
 
-Except the usage of openssl_random_pseudo_bytes() you may use PasswordHash2 under previous versions of PHP if you extend the PasswordHash2 class and implement your own seed() method. However, due to the lack of a proper PRNG under PHP < 5.3.0, I leave this exercise to the whole who won't upgrade. This implementation works consistently across platforms. There are no Windows-isms or *nix-isms in this implementation. In fact, this is hack-free from the PHP implementation point of view.
+Except the usage of openssl_random_pseudo_bytes() you may use PasswordHash2 under previous versions of PHP if you extend the PasswordHash2 class and implement your own seed() method. However, due to the lack of a proper PRNG under PHP < 5.3.0, I leave this exercise to the one who won't upgrade. This implementation works consistently across platforms. There are no Windows-isms or *nix-isms in this implementation. In fact, this is hack-free from the PHP implementation point of view.
 
 ## Advisories
 
