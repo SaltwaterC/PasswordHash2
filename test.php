@@ -7,19 +7,27 @@ error_reporting(-1);
 // System tests
 if (version_compare(PHP_VERSION, '5.3.0', '<'))
 {
-	trigger_error('This class requires PHP 5.3.0+.', E_USER_ERROR);
+	trigger_error('This framework requires PHP 5.3.0+.', E_USER_ERROR);
 }
 
 if ( ! function_exists('openssl_random_pseudo_bytes'))
 {
-	trigger_error('This class requires the OpenSSL extension.', 
-		E_USER_ERROR);
+	trigger_error('This framework requires the OpenSSL extension.', E_USER_ERROR);
 }
 
-if (version_compare(PHP_VERSION, '5.3.2', '<'))
+if ( ! function_exists('hash'))
 {
-	trigger_error('PHP 5.3.2+ is required for SHA256 / SHA512 hashes.',
-		E_USER_WARNING);
+	trigger_error('This framework requires the hash extension.', E_USER_ERROR);
+}
+
+if ( ! in_array('sha256', hash_algos()))
+{
+	trigger_error('This framework requires the sha256 support into the hash extension.', E_USER_ERROR);
+}
+
+if ( ! in_array('sha512', hash_algos()))
+{
+	trigger_error('This framework requires the sha512 support into the hash extension.', E_USER_ERROR);
 }
 
 // Functionality test
@@ -55,41 +63,15 @@ foreach ($tests as $params)
 {
 	$hash = PasswordHash2::hash($password, $params['algo'], $params['cost']);
 	$check = PasswordHash2::check($password, $hash);
-	$cost = PasswordHash2::cost($hash);
-	$algo = PasswordHash2::algo($hash, FALSE);
-	
-	$rehash = PasswordHash2::rehash(
-		$password, $hash, $params['algo'], $params['new_cost']
-	);
-	$recheck = PasswordHash2::check($password, $rehash);
-	$recost = PasswordHash2::cost($rehash);
-	$realgo = PasswordHash2::algo($rehash, FALSE);
-	
-	$shorthash = PasswordHash2::hash(
-		$password, $params['algo'], $params['cost'],TRUE
-	);
-	$shortcheck = PasswordHash2::check(
-		$password, $shorthash, TRUE
-	);
-	$shortcost = PasswordHash2::cost($shorthash, TRUE);
-	$shortalgo = PasswordHash2::algo($shorthash);
+	$info = PasswordHash2::info($hash);
 	
 	echo 'Generated password: '.$password.$lt;
 	echo 'Generated '.$params['algo'].' hash: '.$hash.$lt;
 	echo 'Is valid: '.(($check) ? 'TRUE' : 'FALSE').$lt;
-	echo 'Cost: '.$cost.$lt;
-	echo 'Detected algo: '.$algo.$lt;
 	
-	echo 'Rehashed password: '.$rehash.$lt;
-	echo 'Is valid: '.(($recheck) ? 'TRUE' : 'FALSE').$lt;
-	echo 'Cost: '.$recost.$lt;
-	echo 'Detected algo: '.$realgo.$lt;
-	
-	echo 'Short '.$params['algo'].' hash: '.$shorthash.$lt;
-	echo 'Is valid: '.(($shortcheck) ? 'TRUE' : 'FALSE').$lt;
-	echo 'Short Cost: '.$shortcost.$lt;
-	echo 'Detected algo: '.$shortalgo.$lt;
+	echo 'Info algo: '.$info['algo'].$lt;
+	echo 'Info cost: '.$info['cost'].$lt;
+	echo 'Info seed: '.$info['seed'].$lt;
 	
 	echo $lt;
 }
-

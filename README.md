@@ -16,6 +16,7 @@ For more details over the implemented crypt() schemes, follow these links:
 
  * PHP 5.3.0+
  * OpenSSL extension
+ * hash extension with sha256 and sha512 support
 
 Except the usage of openssl_random_pseudo_bytes() you may use PasswordHash2 under previous versions of PHP if you extend the PasswordHash2 class and implement your own seed() method. However, due to the lack of a proper PRNG under PHP < 5.3.0, I leave this exercise to the one who won't upgrade. This implementation works consistently across platforms. There are no Windows-isms or *nix-isms in this implementation. In fact, this is hack-free from the PHP implementation point of view.
 
@@ -48,7 +49,7 @@ PasswordHash2::hash($password, $algo = self::bcrypt, $cost = 8, $native = FALSE)
 
 > Returns the desired hash on success. An exception on any kind of failure. The cost parameter is truncated to the nearest limit as described by the PHP documentation: 4 - 31 for bcrypt, 1000 - 999999999 for SHA2.
 
-PasswordHash2::check($password, $hash)
+PasswordHash2::check($password, $hash, $native = FALSE)
 
 > Checks a password against an input hash.
 

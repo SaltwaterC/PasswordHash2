@@ -28,6 +28,7 @@ class PasswordHash2 {
 		1 => 'invalid resulted hash length',
 		2 => 'invalid hash / salt',
 		3 => 'invalid algo',
+		4 => 'invalid seed: too short',
 	);
 	/**
 	 * Maps the lenght of the resulting hash. Since the SHA2 based scheme has
@@ -103,13 +104,14 @@ class PasswordHash2 {
 	 * Checks a $password against a $hash.
 	 * @param string $password
 	 * @param string $hash
+	 * @param bool $native
 	 * @return bool
 	 */
-	static function check($password, $hash)
+	static function check($password, $hash, $native = FALSE)
 	{
-		return (self::crypt($password, $hash) === $hash);
+		return (self::crypt($password, $hash, $native) === $hash);
 	}
-		/**
+	/**
 	 * Alias for hash + bcrypt.
 	 * @param string $password
 	 * @param int $cost
@@ -163,10 +165,14 @@ class PasswordHash2 {
 		{
 			throw new Exception(self::$error[3], 3); // invalid algo
 		}
+		if (strlen($hash[3]) < 22)
+		{
+			throw new Exception(self::$error[4], 4); // invalid seed: too short
+		}
 		return array(
 			'algo' => $map[$hash[1]],
 			'cost' => (int) $hash[2],
-			'seed' => $hash[3],
+			'seed' => substr($hash[3], 0, 22),
 		);
 	}
 	// The Private API
@@ -240,6 +246,8 @@ class PasswordHash2 {
  * Implements the hashing algos in pure PHP
  */
 class CryptPHP {
+	const sha256 = 'sha256';
+	const sha512 = 'sha512';
 	// Public API
 	/**
 	 * Pure PHP implementation of bcrypt
@@ -263,5 +271,27 @@ class CryptPHP {
 		
 	}
 	// Private API
+	/**
+	 * Returns the raw hash for $algo and $key
+	 * @param string $algo
+	 * @param string $key
+	 * @return string
+	 */
+	protected static function hash($algo, $data)
+	{
+		return hash($algo, $data, TRUE);
+	}
 	
+	protected static function b64_from_24bit($b2, $b1, $b0, $n)
+	{
+		$chars = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+		$w = ($b2 << 16) | ($b1 << 8) | $b0;
+		$buf = '';
+		while ($n-- > 0)
+		{
+			$buf .= substr($chars, $w & 0x3f, 1);
+			$w >>= 6;
+		}
+		return $buf;
+	}
 } // End CryptPHP
