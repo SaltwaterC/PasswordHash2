@@ -1,3 +1,12 @@
+## v0.3
+ * backward incompatible release. Drops some public API calls, adds some new.
+ * dropped support: standard SHA2 schemes, base64 encoded hashes, short hashes, the algo(), cost(), rehash(), shorten(), expand() methods.
+ * added info() method for getting the algo, cost / rounds, seed information from a hash / salt.
+ * added crypt() method as crypt() wrapper for calling either the native implementation or a pure PHP implementation of the desired algo. No more failures, the algos always exist.
+ * added support for my proposed SHA2 schemes that feature several improvements over the original, mainstream, schemes.
+ * added exceptions as error handlers. The original v0.1 implementation didn't need them. This version does.
+ * simplified a lot of the existing API as the feature creep started to pile up in v0.2.
+
 ## v0.2.3
  * adds an algo() method for determining the algo from the input hash.
  * better docs.
