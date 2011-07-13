@@ -14,7 +14,7 @@
  * 
  * @author Stefan Rusu
  * @license New BSD
- * @version 0.3-dev
+ * @version 0.3
  */
 class PasswordHash2 {
 	const bcrypt = 'bcrypt';
