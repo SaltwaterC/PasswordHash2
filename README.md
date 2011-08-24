@@ -2,7 +2,7 @@
 
 Portable password hashing framework for PHP. Originally inspired by [phpass v0.3](http://www.openwall.com/phpass/), hence the name PasswordHash2. However, it resembles none of the phpass framework.
 
-If the crypt() does not implement the desired scheme, a pure PHP implementation is available. The bcrypt scheme may be broken (see the Advisories section below), while my proposed SHA2 schemes are, well, proposed. Unless they don't gain some traction, you won't see them implemented into the mainstream libraries.
+If the crypt() does not implement the desired scheme, a pure PHP implementation is available. My proposed SHA2 schemes are, well, proposed. Unless they don't gain some traction, you won't see them implemented into the mainstream libraries.
 
 For more details over the implemented crypt() schemes, follow these links:
 
@@ -11,13 +11,13 @@ For more details over the implemented crypt() schemes, follow these links:
 
 ## System Requirements
 
- * PHP 5.3.0+
+ * PHP 5.3.8+
  * OpenSSL extension
  * hash extension with sha256 and sha512 support
 
 ## Advisories
 
- * [CVE-2011-2483: crypt_blowfish 8-bit character mishandling](http://www.openwall.com/lists/oss-security/2011/06/20/2) - affects the PHP's bcrypt implementation up to the current version (5.3.6). Till a patch is implemented, the SHA2 schemes are recommended.
+ * [CVE-2011-2483: crypt_blowfish 8-bit character mishandling](http://www.openwall.com/lists/oss-security/2011/06/20/2) - affects the PHP's bcrypt implementation up to 5.3.6. PHP 5.3.7 was short lived due to a bug in CRYPT_MD5 (but it contains a fixed version of bcrypt), therefore the recommendation is 5.3.8. For more details on the crypt() blowfish security issue in pre 5.3.6 see [the crypt blowfish page](http://www.php.net/security/crypt_blowfish.php). PasswordHash2 continues to use the 2a prefix for the bcrypt hashes. You may need to change the existing hashes to 2x and implement a rehashing strategy.
 
 ## Reference
 

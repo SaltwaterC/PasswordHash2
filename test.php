@@ -5,9 +5,9 @@ require dirname(__FILE__).DIRECTORY_SEPARATOR.'passwordhash2.php';
 error_reporting(-1);
 
 // System tests
-if (version_compare(PHP_VERSION, '5.3.0', '<'))
+if (version_compare(PHP_VERSION, '5.3.8', '<'))
 {
-	trigger_error('This framework requires PHP 5.3.0+.', E_USER_ERROR);
+	trigger_error('This framework requires PHP 5.3.8+.', E_USER_ERROR);
 }
 
 if ( ! function_exists('openssl_random_pseudo_bytes'))
