@@ -62,7 +62,7 @@ class PasswordHash2 {
 			return FALSE;
 		}
 		
-		if ($hash[1] !== '2a')
+		if ($hash[1] !== '2y')
 		{
 			return FALSE;
 		}
@@ -135,7 +135,7 @@ class PasswordHash2 {
 			$cost = 31;
 		}
 		
-		return '$2a$'.self::format_cost($cost).'$'.$seed;
+		return '$2y$'.self::format_cost($cost).'$'.$seed;
 	}
 	
 	/**
